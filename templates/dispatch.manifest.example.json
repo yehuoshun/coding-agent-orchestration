@@ -1,0 +1,33 @@
+{
+  "_comment": "任务清单示例：python3 scripts/dispatch.py --manifest tasks.json --out out/",
+  "repo": "/absolute/path/to/your-repo",
+  "base": "main",
+  "max_retry": 3,
+  "channels": { "fast": 2, "slow": 2 },
+  "agent": { "backend": "mock" },
+  "tasks": [
+    {
+      "id": "fix-lint",
+      "channel": "fast",
+      "goal": "修掉 foo.py 的未使用导入",
+      "files": ["foo.py"],
+      "verify": "python3 -m pytest tests/test_foo.py -q",
+      "verify_timeout": 300,
+      "token_budget": 60000,
+      "mock": {
+        "_comment": "backend=mock 时用它；换成真 Agent 就删掉这段",
+        "fail_times": 0,
+        "writes": [{ "path": "foo.py", "content": "# your fixed content\n" }]
+      }
+    },
+    {
+      "id": "add-tests",
+      "channel": "slow",
+      "goal": "为 bar.py 补 3 个单测",
+      "files": ["tests/test_bar.py"],
+      "verify": "python3 -m pytest tests/test_bar.py -q",
+      "agent_backend_note": "真 Agent 用法：把 agent.backend 改成 cmd，并给任务加 agent_cmd",
+      "agent_cmd": "codex exec --json < /dev/stdin"
+    }
+  ]
+}

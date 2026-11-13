@@ -19,7 +19,8 @@ jobs:
             references/reviewer.md references/gates.md \
             templates/handoff.schema.json templates/ledger.md \
             docs/state-machine.md \
-            scripts/gate.py tests/test_gate.py ; do
+            scripts/gate.py tests/test_gate.py \
+            scripts/dispatch.py tests/test_dispatch.py ; do
             test -f "$f" || { echo "::error::missing $f"; exit 1; }
           done
           echo "all required files present"
@@ -44,3 +45,6 @@ jobs:
 
       - name: Gate checker self-test
         run: python3 tests/test_gate.py
+
+      - name: Dispatcher self-test
+        run: python3 tests/test_dispatch.py

@@ -40,6 +40,25 @@ cp templates/handoff.schema.json ../your-task/handoff.json
 cat templates/ledger.md >> ../your-task/ledger.md
 ```
 
+## 调度器（把流程变成能自动跑的系统）
+
+`scripts/dispatch.py` 读任务清单，自动建 worktree、派给 Agent 后端、跑闸门、熔断、出台账：
+
+```bash
+cp templates/dispatch.manifest.example.json tasks.json   # 改成你的仓库和任务
+python3 scripts/dispatch.py --manifest tasks.json --out out/
+# 产出：out/ledger.md（台账） + out/results.json（明细） + out/wt/（失败任务的现场）
+```
+
+能力：
+- **双通道并发**：`channels.fast` / `channels.slow` 各自 worker 数
+- **重试 + 熔断**：`max_retry` 次后 `failed`，证据写 `failed-<id>.json`
+- **任务隔离**：每任务独立 git worktree（G7），成功后可选 `--clean` 回收
+- **闸门全程**：每轮真跑 `verify`（G1）+ `scripts/gate.py`（G3/G4/G6/G7）
+- **可插拔 Agent**：`mock`（自测/CI，零成本）或 `cmd`（codex / claude / 任意脚本，JSON 进 stdin、usage 出 stdout）
+
+自测：`python3 tests/test_dispatch.py`（16 例）= 单任务过 / 回环重试 / 熔断 / 8任务并行零污染 / 台账。
+
 ## 闸门检查器（可执行）
 
 `references/gates.md` 里的 G3/G4/G6/G7 已经写成代码，别再靠人眼比对：
@@ -67,7 +86,10 @@ python3 tests/test_gate.py   # 自测 12 例（每个闸门都有能变红的用
 - `references/` —— 四个角色各自的执行细则 + 闸门清单
 - `templates/` —— 交接包 schema、台账模板
 - `scripts/gate.py` —— 闸门检查器（G3/G4/G6/G7）
+- `scripts/dispatch.py` —— 调度器（任务清单 → worktree → Agent → 闸门 → 台账）
 - `tests/test_gate.py` —— 闸门自测
+- `tests/test_dispatch.py` —— 调度器自测
+- `examples/` —— 失败路径、并行调度演练
 - `docs/state-machine.md` —— 状态机与失败处理
 
 ## 红线
