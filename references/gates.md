@@ -1,6 +1,11 @@
 # 闸门清单（硬约束）
 
 > 原则：**能写成代码的，不要写成提示词。**
+>
+> ✅ **已脚本化**：`scripts/gate.py`（G3/G4/G6/G7 可直接跑，退出码 0/1）
+> - 用法：`python3 scripts/gate.py --handoff handoff.json --repo . --base main --usage usage.json`
+> - 自测：`python3 tests/test_gate.py`（12 例，每个闸门都有「能变红」的用例）
+> - 未脚本化：G1/G2/G5（分别由 CI、Reviewer、调度层负责）
 
 | 编号 | 闸门 | 落地方式 |
 |---|---|---|

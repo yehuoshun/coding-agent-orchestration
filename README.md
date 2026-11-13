@@ -40,11 +40,34 @@ cp templates/handoff.schema.json ../your-task/handoff.json
 cat templates/ledger.md >> ../your-task/ledger.md
 ```
 
+## 闸门检查器（可执行）
+
+`references/gates.md` 里的 G3/G4/G6/G7 已经写成代码，别再靠人眼比对：
+
+```bash
+python3 scripts/gate.py --handoff tasks/s1/handoff.json --repo . --base main --usage tasks/s1/usage.json
+# 退出码 0=全过 / 1=有闸门失败；输出逐条 [G3] PASS/FAIL
+
+python3 tests/test_gate.py   # 自测 12 例（每个闸门都有能变红的用例）
+```
+
+| 闸门 | 谁来管 |
+|---|---|
+| G1 测试绿 | CI / verify 命令 |
+| G2 评审过 | Reviewer（换模型） |
+| **G3 改动范围** | `scripts/gate.py` |
+| **G4 不删/跳测试** | `scripts/gate.py` |
+| G5 重试 ≤3 | 调度层计数器 |
+| **G6 token 预算** | `scripts/gate.py --usage/--tokens` |
+| **G7 独立 worktree** | `scripts/gate.py` |
+
 ## 目录
 
 - `SKILL.md` —— 编排总纲（给 Agent 读的作业说明书）
 - `references/` —— 四个角色各自的执行细则 + 闸门清单
 - `templates/` —— 交接包 schema、台账模板
+- `scripts/gate.py` —— 闸门检查器（G3/G4/G6/G7）
+- `tests/test_gate.py` —— 闸门自测
 - `docs/state-machine.md` —— 状态机与失败处理
 
 ## 红线
