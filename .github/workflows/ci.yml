@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Required files exist
+        run: |
+          set -e
+          for f in \
+            README.md SKILL.md LICENSE \
+            references/planner.md references/coder.md references/tester.md \
+            references/reviewer.md references/gates.md \
+            templates/handoff.schema.json templates/ledger.md \
+            docs/state-machine.md ; do
+            test -f "$f" || { echo "::error::missing $f"; exit 1; }
+          done
+          echo "all required files present"
+
+      - name: SKILL.md frontmatter
+        run: |
+          set -e
+          head -10 SKILL.md | grep -q '^name:'
+          head -10 SKILL.md | grep -q '^description:'
+          echo "frontmatter ok"
+
+      - name: JSON files parse + schema sanity
+        run: |
+          python3 -c "import json,glob,sys; fs=glob.glob('**/*.json',recursive=True); [json.load(open(f)) for f in fs]; print('parsed', len(fs), 'json files')"
+          python3 -c "import json; d=json.load(open('templates/handoff.schema.json')); assert d.get('type')=='object', 'schema.type'; assert 'subtasks' in d.get('properties',{}), 'subtasks'; print('handoff schema ok')"
+
+      - name: Gates present
+        run: |
+          set -e
+          for g in G1 G2 G3 G4 G5 G6 G7; do grep -q "$g" references/gates.md || { echo "::error::missing $g"; exit 1; }; done
+          echo "gates ok"
